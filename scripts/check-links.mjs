@@ -12,6 +12,9 @@ import { serve } from './serve.mjs';
 const site = (process.env.SITE_URL || 'https://pas-de-panique.netlify.app').replace(/\/$/, '');
 const internalOnly = process.argv.includes('--internal-only');
 const port = 5555;
+// Official sites whose bot protection blocks every automated check from CI,
+// even a real headless browser. A 403 from these is a warning to check by hand.
+const BOT_BLOCKED_HOSTS = ['travel.state.gov'];
 const local = `http://localhost:${port}`;
 const escaped = site.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
@@ -56,6 +59,10 @@ if (blocked.length) {
   for (const url of verified) console.log(`Verified in a browser (the site blocks scripts): ${url}`);
   broken = broken.filter((l) => !verified.includes(l.url));
 }
+
+const manual = unique(broken.filter((l) => l.status === 403 && BOT_BLOCKED_HOSTS.includes(new URL(l.url).host)));
+for (const url of manual) console.warn(`WARNING could not verify automatically (bot protection), check by hand: ${url}`);
+broken = broken.filter((l) => !manual.includes(l.url));
 
 const checked = result.links.filter((l) => l.state === 'OK');
 const skipped = result.links.filter((l) => l.state === 'SKIPPED');
