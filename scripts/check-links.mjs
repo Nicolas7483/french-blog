@@ -1,9 +1,12 @@
 // Checks every link in the built site (dist/): pages, assets, feeds, sitemaps
 // and fragments. Absolute links to the site's own domain are checked against
-// the local build. Pass --internal-only to skip external sites (for sandboxes
+// the local build. Some government sites answer 403 to scripts (bot
+// protection), so external 403 and 429 answers are re-checked in a real
+// headless browser before they count as broken. Pass --internal-only to skip external sites (for sandboxes
 // without internet access); CI runs the full check.
 
 import { LinkChecker } from 'linkinator';
+import { chromium } from '@playwright/test';
 import { serve } from './serve.mjs';
 
 const site = (process.env.SITE_URL || 'https://pas-de-panique.netlify.app').replace(/\/$/, '');
@@ -22,17 +25,40 @@ const result = await checker.check({
   timeout: 20000,
   retryErrors: true,
   retryErrorsCount: 2,
-  userAgent: 'Mozilla/5.0 (compatible; link-check)',
+  userAgent:
+    'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36',
+  headers: { accept: 'text/html,application/xhtml+xml,*/*;q=0.8', 'accept-language': 'en-US,en;q=0.9,fr;q=0.8' },
   urlRewriteExpressions: [{ pattern: new RegExp(`^${escaped}`), replacement: local }],
   linksToSkip: async (link) => internalOnly && /^https?:/.test(link) && !link.startsWith(local) && !link.startsWith(site),
 });
 
 server.close();
 
-const broken = result.links.filter((l) => l.state === 'BROKEN');
+const unique = (links) => [...new Set(links.map((l) => l.url))];
+let broken = result.links.filter((l) => l.state === 'BROKEN');
+
+// Re-check external links blocked by bot protection in a real browser.
+const blocked = unique(broken.filter((l) => !l.url.startsWith(local) && [403, 429].includes(l.status ?? 0)));
+if (blocked.length) {
+  const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined });
+  const verified = [];
+  for (const url of blocked) {
+    const page = await browser.newPage();
+    try {
+      const res = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
+      if (res && res.status() < 400) verified.push(url);
+    } catch {
+      // Still broken.
+    }
+    await page.close();
+  }
+  await browser.close();
+  for (const url of verified) console.log(`Verified in a browser (the site blocks scripts): ${url}`);
+  broken = broken.filter((l) => !verified.includes(l.url));
+}
+
 const checked = result.links.filter((l) => l.state === 'OK');
 const skipped = result.links.filter((l) => l.state === 'SKIPPED');
-const unique = (links) => [...new Set(links.map((l) => l.url))];
 
 console.log(`Links: ${unique(checked).length} unique OK, ${unique(skipped).length} skipped, ${broken.length} broken.`);
 if (internalOnly && skipped.length) {
