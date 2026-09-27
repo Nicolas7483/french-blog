@@ -79,7 +79,7 @@ Create a file named `forbidden-terms.txt` at the root, with one term per line (e
 npm run check:privacy
 ```
 
-This scans the built site and all source files. It fails if it finds any forbidden term (ignoring case) or any em dash. It prints the file and line, and only a number for the term, so CI logs never leak the term itself. It also runs as part of every `npm run build`. The hosting build does not have the private file, so there it only checks for em dashes. Run the check locally before you push.
+This scans the built site and all source files. It fails if it finds any forbidden term (ignoring case) or any em dash. It prints the file and line, and only a number for the term, so CI logs never leak the term itself. It also runs as part of every `npm run build`. The Vercel build does not have the private file, so there it only checks for em dashes. Run the check locally before you push.
 
 ## QA
 
@@ -101,16 +101,25 @@ If your network blocks outside sites, use `node scripts/check-links.mjs --intern
 
 GitHub Actions runs the full QA on every push (`.github/workflows/qa.yml`). The Lighthouse HTML reports are attached to each run.
 
-## Deploy (Netlify, free tier)
+## Deploy (Vercel, free Hobby plan)
 
-Why Netlify and not GitHub Pages: a GitHub Pages address would be `<github-username>.github.io/french-blog`, and that puts the GitHub username in every link. A Netlify subdomain does not.
+`vercel.json` already sets the build command (`npm run build`), the output folder (`dist`), trailing slashes, security headers and long caching for hashed assets. Node 22 comes from `engines` in `package.json`.
 
-1. Log in at [app.netlify.com](https://app.netlify.com) and choose **Add new site > Import an existing project > GitHub**. Pick this repository.
-2. Netlify reads `netlify.toml`, so the build command (`npm run build`), the publish folder (`dist`) and Node 22 are already set. Click **Deploy**.
-3. Under **Site configuration > Change site name**, set the subdomain to `pas-de-panique`, so the site is at `https://pas-de-panique.netlify.app`.
-   If that name is taken, pick another one. Then add an environment variable `SITE_URL=https://<your-name>.netlify.app` (with no trailing slash) and redeploy, so canonical URLs, the sitemap, RSS and share images point to the right address.
-4. For a custom domain, add it under **Domain management** and set `SITE_URL` to it.
+1. At [vercel.com/new](https://vercel.com/new), import this GitHub repository. Vercel detects Astro, so leave the settings as they are and click **Deploy**.
+2. Name the project `pas-de-panique`. You can rename it later in **Settings > General**. The production address becomes `https://pas-de-panique.vercel.app`.
+   If that name is taken, any name works. The build picks up the real production domain automatically (from `VERCEL_PROJECT_PRODUCTION_URL`), so canonical URLs, the sitemap, RSS and share images follow it.
+3. For a custom domain, add it under **Settings > Domains**. Then set the environment variable `SITE_URL=https://your-domain.com` (with no trailing slash) and redeploy.
 
-Every push to the production branch redeploys. Pull requests get preview URLs.
+Every push to the production branch (usually `main`) redeploys, and every other branch gets a preview URL.
 
-The 404 page (`dist/404.html`) is served automatically. Security headers and long caching for hashed assets are set in `netlify.toml`.
+**Privacy:** preview URLs include your Vercel team or account name. Share only the production address, and make sure the project name does not contain your name.
+
+The 404 page (`dist/404.html`) is served automatically.
+
+Deploy from your own terminal instead, if you prefer:
+
+```sh
+npm i -g vercel
+vercel          # first time: links the folder to a Vercel project
+vercel --prod
+```

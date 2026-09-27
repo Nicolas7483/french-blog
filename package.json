@@ -30,5 +30,8 @@
     "lighthouse": "^13.5.0",
     "linkinator": "^8.1.0",
     "typescript": "^6.0.3"
+  },
+  "engines": {
+    "node": "22.x"
   }
 }

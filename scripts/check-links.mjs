@@ -8,8 +8,8 @@
 import { LinkChecker } from 'linkinator';
 import { chromium } from '@playwright/test';
 import { serve } from './serve.mjs';
+import { SITE_URL as site } from '../site-url.mjs';
 
-const site = (process.env.SITE_URL || 'https://pas-de-panique.netlify.app').replace(/\/$/, '');
 const internalOnly = process.argv.includes('--internal-only');
 const port = 5555;
 // Official sites whose bot protection blocks every automated check from CI,

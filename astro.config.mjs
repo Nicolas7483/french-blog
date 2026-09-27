@@ -1,13 +1,10 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
-
-// SITE_URL is the public origin of the deployed site (no trailing slash).
-// Set it in the host's environment variables once a domain is chosen.
-const site = process.env.SITE_URL || 'https://pas-de-panique.netlify.app';
+import { SITE_URL } from './site-url.mjs';
 
 export default defineConfig({
-  site,
+  site: SITE_URL,
   trailingSlash: 'always',
   build: { format: 'directory' },
   integrations: [sitemap({ filter: (page) => !page.includes('/404') })],
