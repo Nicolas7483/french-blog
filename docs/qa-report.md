@@ -8,7 +8,7 @@ Date: 2026-09-27. This covers the launch build: 8 articles in English and French
 |---|---|
 | `npm run build` (type check, build, privacy check) | Pass: 0 errors, 0 warnings, 0 hints |
 | HTML validation (html-validate, recommended rules, 33 pages) | Pass, after 1 fix |
-| Links (every page, asset, feed, sitemap and `#fragment`) | Internal: 39 unique URLs, 0 broken. External: see note below |
+| Links (every page, asset, feed, sitemap and `#fragment`) | Pass in CI: 42 unique URLs, 0 broken. 1 external link needs a manual check (see notes) |
 | Playwright functional tests | 41 of 41 pass |
 | axe (WCAG 2.0/2.1/2.2 A and AA plus best practices), light and dark mode, every page | 0 violations of any impact |
 | Responsive at 375, 768 and 1280 px | No horizontal scroll, lines of 85 characters or fewer, tap targets OK |
@@ -38,6 +38,10 @@ Date: 2026-09-27. This covers the launch build: 8 articles in English and French
 
 ## Notes and limits
 
-- **External links:** this build environment's network policy blocks outside sites, so the 4 external links could not be checked from here: mon-vie-via.businessfrance.fr, travel.state.gov, uscis.gov and fr.usembassy.gov. The GitHub Actions QA workflow checks them on every push from a runner with normal internet access.
+- **External links:** the build sandbox blocks outside sites, so the external links are checked in GitHub Actions instead, where the full QA suite runs on every push. That found one more issue:
+  6. **travel.state.gov and fr.usembassy.gov answered 403** to the link checker. Both sites block automated requests; the links are correct. The checker now sends browser-like headers, which fixed fr.usembassy.gov, and it re-checks any 403 in a real headless browser.
+  travel.state.gov still blocks everything coming from CI, including the headless browser. It is on a short list of known bot-protected sites. For those, CI prints a warning ("check by hand") instead of failing. Please open https://travel.state.gov/ yourself once.
+  mon-vie-via.businessfrance.fr, uscis.gov and fr.usembassy.gov are verified automatically.
+- **CI:** the full run on GitHub Actions is green (build, HTML validation, links, 41 Playwright tests, Lighthouse). Lighthouse on the CI runner: Performance 98 to 100, and 100 for Accessibility, Best Practices and SEO. The HTML reports are attached to each run as `lighthouse-reports`.
 - **Design research:** the design galleries named in the brief (Awwwards, Godly, SiteInspire, Land-book, One Page Love, Minimal Gallery, Lapa Ninja) and the reference sites were blocked by the same network policy. References were confirmed through web search instead. The shortlist was: Craig Mod, Robin Rendle, Frank Chimero, Rest of World, Maggie Appleton, Jim Nielsen and Manuel Moreale. Nicolas picked the "Carnet" direction from 3 mockups.
 - **Publish dates:** every article is dated 2026-09-27, the launch date. Change `date` in the frontmatter if you want to stagger them.

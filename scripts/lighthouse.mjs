@@ -41,7 +41,7 @@ for (const path of pages) {
   if (scores.some((s) => s < 90)) failed = true;
 }
 
-await chrome.kill();
+chrome.kill();
 server.close();
 console.table(rows);
 fs.writeFileSync('qa-output/lighthouse/summary.json', JSON.stringify(rows, null, 2));
