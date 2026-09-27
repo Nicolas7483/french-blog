@@ -1,0 +1,70 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { home, ui, routes, topicNames, topicBlurbs, TOPICS, alternatesFor, type Lang } from '../i18n';
+import { getPosts, readingTime } from '../lib/posts';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = ui[lang];
+const copy = home[lang];
+const posts = await getPosts(lang);
+const featured = copy.featured.map((f) => ({ ...f, post: posts.find((p) => p.data.key === f.key)! }));
+---
+
+<BaseLayout description={t.description} lang={lang} alternates={alternatesFor(routes.home)}>
+  <div class="wrap">
+    <section class="hero" aria-labelledby="hero-title">
+      <h1 id="hero-title">{copy.headline}</h1>
+      <p class="hero__subhead">{copy.subhead}</p>
+      <p class="hero__intro">{copy.intro}</p>
+    </section>
+
+    <section class="start-here" aria-labelledby="start-here-title">
+      <h2 id="start-here-title" class="section-title">{t.startHere}</h2>
+      <ol class="start-list">
+        {
+          featured.map(({ label, post }, i) => (
+            <li class="start-list__item">
+              <span class="start-list__num" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+              <div class="start-list__body">
+                <h3 class="start-list__title">
+                  <a href={routes.article(lang, post.data.slug)}>{label}</a>
+                </h3>
+                <p class="start-list__summary">{post.data.summary}</p>
+                <p class="post-card__meta">{t.minRead(readingTime(post.body))}</p>
+              </div>
+            </li>
+          ))
+        }
+      </ol>
+    </section>
+
+    <section class="by-topic" aria-labelledby="by-topic-title">
+      <h2 id="by-topic-title" class="section-title">{t.byTopic}</h2>
+      {
+        TOPICS.map((topic) => (
+          <section class="topic-group" aria-labelledby={`topic-${topic}`}>
+            <div class="topic-group__head">
+              <h3 id={`topic-${topic}`} class="topic-group__title">
+                <a href={routes.topic(lang, topic)}>{topicNames[lang][topic]}</a>
+              </h3>
+              <p class="topic-group__blurb">{topicBlurbs[lang][topic]}</p>
+            </div>
+            <ul class="topic-group__list">
+              {posts
+                .filter((p) => p.data.topic === topic)
+                .map((p) => (
+                  <li>
+                    <a href={routes.article(lang, p.data.slug)}>{p.data.title}</a>
+                  </li>
+                ))}
+            </ul>
+          </section>
+        ))
+      }
+    </section>
+  </div>
+</BaseLayout>

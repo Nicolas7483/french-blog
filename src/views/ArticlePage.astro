@@ -1,0 +1,54 @@
+---
+import { render } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PostList from '../components/PostList.astro';
+import TopicLabel from '../components/TopicLabel.astro';
+import { ui, routes, topicNames, formatDate, type Alternates } from '../i18n';
+import { getPostByKey, getRelated, readingTime, type Post } from '../lib/posts';
+
+interface Props {
+  post: Post;
+}
+
+const { post } = Astro.props;
+const { lang, key, title, summary, topic, date } = post.data;
+const t = ui[lang];
+const { Content } = await render(post);
+const related = await getRelated(post);
+const translation = await getPostByKey(lang === 'en' ? 'fr' : 'en', key);
+const alternates: Alternates = { [lang]: routes.article(lang, post.data.slug) };
+if (translation) alternates[translation.data.lang] = routes.article(translation.data.lang, translation.data.slug);
+---
+
+<BaseLayout
+  title={title}
+  description={summary}
+  lang={lang}
+  alternates={alternates}
+  type="article"
+  published={date}
+  section={topicNames[lang][topic]}
+>
+  <article class="article wrap">
+    <header class="article__header">
+      <TopicLabel lang={lang} topic={topic} />
+      <h1 class="article__title">{title}</h1>
+      <p class="article__dek">{summary}</p>
+      <p class="article__meta">
+        <time datetime={date.toISOString().slice(0, 10)}>{formatDate(date, lang)}</time>
+        <span aria-hidden="true"> · </span>
+        <span>{t.minRead(readingTime(post.body))}</span>
+      </p>
+    </header>
+    <div class="prose">
+      <Content />
+    </div>
+    <aside class="article__note">
+      <p>{t.notAdvice} <a href={routes.disclaimer(lang)}>{t.readDisclaimer}</a>.</p>
+    </aside>
+  </article>
+  <section class="related wrap" aria-labelledby="related-title">
+    <h2 id="related-title" class="section-title">{t.keepReading}</h2>
+    <PostList lang={lang} posts={related} />
+  </section>
+</BaseLayout>

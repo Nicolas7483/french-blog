@@ -1,0 +1,70 @@
+---
+import '../styles/fonts.css';
+import '../styles/global.css';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { SITE_NAME, ui, routes, withBase, type Lang, type Alternates } from '../i18n';
+
+interface Props {
+  title?: string;
+  description: string;
+  lang: Lang;
+  alternates?: Alternates;
+  type?: 'website' | 'article';
+  published?: Date;
+  section?: string;
+  noindex?: boolean;
+}
+
+const { title, description, lang, alternates = {}, type = 'website', published, section, noindex = false } =
+  Astro.props;
+const t = ui[lang];
+const fullTitle = title ? `${title} | ${SITE_NAME}` : `${SITE_NAME} | ${t.homeTitle}`;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const abs = (path: string) => new URL(path, Astro.site).href;
+const ogImage = abs(withBase(lang === 'fr' ? '/og-fr.png' : '/og-en.png'));
+const other: Lang = lang === 'en' ? 'fr' : 'en';
+---
+
+<!doctype html>
+<html lang={lang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical.href} />
+    {noindex && <meta name="robots" content="noindex" />}
+    {alternates.en && <link rel="alternate" hreflang="en" href={abs(alternates.en)} />}
+    {alternates.fr && <link rel="alternate" hreflang="fr" href={abs(alternates.fr)} />}
+    {alternates.en && <link rel="alternate" hreflang="x-default" href={abs(alternates.en)} />}
+    <link rel="alternate" type="application/rss+xml" title={`${SITE_NAME} (${lang.toUpperCase()})`} href={abs(routes.rss(lang))} />
+    <link rel="sitemap" href={withBase('/sitemap-index.xml')} />
+    <link rel="icon" href={withBase('/favicon.svg')} type="image/svg+xml" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#faf7f2" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#181614" media="(prefers-color-scheme: dark)" />
+    <meta property="og:type" content={type} />
+    <meta property="og:site_name" content={SITE_NAME} />
+    <meta property="og:title" content={title ?? SITE_NAME} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical.href} />
+    <meta property="og:locale" content={t.locale} />
+    {alternates[other] && <meta property="og:locale:alternate" content={ui[other].locale} />}
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={`${SITE_NAME}: ${t.tagline}`} />
+    <meta name="twitter:card" content="summary_large_image" />
+    {published && <meta property="article:published_time" content={published.toISOString()} />}
+    {section && <meta property="article:section" content={section} />}
+  </head>
+  <body>
+    <a class="skip-link" href="#main">{t.skip}</a>
+    <Header lang={lang} alternates={alternates} />
+    <main id="main" tabindex="-1">
+      <slot />
+    </main>
+    <Footer lang={lang} alternates={alternates} />
+  </body>
+</html>

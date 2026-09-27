@@ -1,0 +1,30 @@
+---
+import TopicLabel from './TopicLabel.astro';
+import { routes, ui, type Lang } from '../i18n';
+import { readingTime, type Post } from '../lib/posts';
+
+interface Props {
+  lang: Lang;
+  posts: Post[];
+  showTopic?: boolean;
+  headingLevel?: 2 | 3;
+}
+
+const { lang, posts, showTopic = true, headingLevel = 3 } = Astro.props;
+const Heading = headingLevel === 2 ? 'h2' : 'h3';
+---
+
+<ul class="post-list">
+  {
+    posts.map((post) => (
+      <li class="post-card">
+        {showTopic && <TopicLabel lang={lang} topic={post.data.topic} />}
+        <Heading class="post-card__title">
+          <a href={routes.article(lang, post.data.slug)}>{post.data.title}</a>
+        </Heading>
+        <p class="post-card__summary">{post.data.summary}</p>
+        <p class="post-card__meta">{ui[lang].minRead(readingTime(post.body))}</p>
+      </li>
+    ))
+  }
+</ul>

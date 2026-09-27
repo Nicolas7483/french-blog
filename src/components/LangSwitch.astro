@@ -1,0 +1,16 @@
+---
+import { ui, routes, type Lang, type Alternates } from '../i18n';
+
+interface Props {
+  lang: Lang;
+  alternates: Alternates;
+}
+
+const { lang, alternates } = Astro.props;
+const other: Lang = lang === 'en' ? 'fr' : 'en';
+const href = alternates[other] ?? routes.home(other);
+---
+
+<a class="lang-switch" href={href} hreflang={other} lang={other} aria-label={ui[lang].switchToLabel}>
+  {ui[lang].switchTo}
+</a>

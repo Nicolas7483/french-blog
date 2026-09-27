@@ -1,0 +1,12 @@
+---
+import TopicsPage from '../../../views/TopicsPage.astro';
+import { TOPICS, topicSlugs, type Topic } from '../../../i18n';
+
+export function getStaticPaths() {
+  return TOPICS.map((topic) => ({ params: { topic: topicSlugs.fr[topic] }, props: { topic } }));
+}
+
+const { topic } = Astro.props as { topic: Topic };
+---
+
+<TopicsPage lang="fr" topic={topic} />

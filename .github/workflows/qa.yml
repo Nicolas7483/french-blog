@@ -1,0 +1,34 @@
+name: QA
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  qa:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Build (type check, build, privacy check)
+        run: npm run build
+      - name: HTML validation
+        run: npm run qa:html
+      - name: Links (internal and external)
+        run: npm run qa:links
+      - name: Playwright (pages, navigation, feeds, accessibility, responsive)
+        run: npm test
+        env:
+          CI: true
+      - name: Lighthouse (mobile)
+        run: npm run qa:lighthouse
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lighthouse-reports
+          path: qa-output/lighthouse

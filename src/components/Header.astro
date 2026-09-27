@@ -1,0 +1,25 @@
+---
+import LangSwitch from './LangSwitch.astro';
+import { SITE_NAME, ui, routes, type Lang, type Alternates } from '../i18n';
+
+interface Props {
+  lang: Lang;
+  alternates: Alternates;
+}
+
+const { lang, alternates } = Astro.props;
+const t = ui[lang];
+const path = Astro.url.pathname;
+const current = (href: string) => (path.startsWith(href) ? 'page' : undefined);
+---
+
+<header class="site-header">
+  <div class="site-header__inner">
+    <a class="wordmark" href={routes.home(lang)}>{SITE_NAME}</a>
+    <nav class="site-nav" aria-label={t.navLabel}>
+      <a href={routes.topics(lang)} aria-current={current(routes.topics(lang))}>{t.topics}</a>
+      <a href={routes.about(lang)} aria-current={current(routes.about(lang))}>{t.about}</a>
+      <LangSwitch lang={lang} alternates={alternates} />
+    </nav>
+  </div>
+</header>

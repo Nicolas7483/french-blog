@@ -1,0 +1,19 @@
+---
+import { topicNames, routes, type Lang, type Topic } from '../i18n';
+
+interface Props {
+  lang: Lang;
+  topic: Topic;
+  link?: boolean;
+}
+
+const { lang, topic, link = true } = Astro.props;
+---
+
+{
+  link ? (
+    <a class="topic-label" href={routes.topic(lang, topic)}>{topicNames[lang][topic]}</a>
+  ) : (
+    <span class="topic-label">{topicNames[lang][topic]}</span>
+  )
+}

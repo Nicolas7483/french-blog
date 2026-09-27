@@ -1,0 +1,18 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { ui, routes } from '../i18n';
+---
+
+<BaseLayout title={`404: ${ui.en.notFoundTitle}`} description={ui.en.notFoundText} lang="en" noindex>
+  <div class="wrap not-found">
+    <p class="not-found__code" aria-hidden="true">404</p>
+    <h1>{ui.en.notFoundTitle}</h1>
+    <p>{ui.en.notFoundText}</p>
+    <p><a href={routes.home('en')}>{ui.en.backHome}</a></p>
+    <div lang="fr" class="not-found__alt">
+      <h2>{ui.fr.notFoundTitle}</h2>
+      <p>{ui.fr.notFoundText}</p>
+      <p><a href={routes.home('fr')}>{ui.fr.backHome}</a></p>
+    </div>
+  </div>
+</BaseLayout>

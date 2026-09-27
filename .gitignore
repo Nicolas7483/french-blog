@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.astro/
+.netlify/
+test-results/
+playwright-report/
+qa-output/
+.DS_Store
+# Private list of terms that must never appear on the site. Never commit it.
+forbidden-terms.txt

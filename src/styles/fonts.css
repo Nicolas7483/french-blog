@@ -1,0 +1,4 @@
+/* Self hosted fonts. Browsers only download the Latin subsets, which cover French accents. */
+@import '@fontsource-variable/literata/wght.css';
+@import '@fontsource-variable/literata/wght-italic.css';
+@import '@fontsource-variable/instrument-sans/wght.css';

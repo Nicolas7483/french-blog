@@ -1,0 +1,25 @@
+---
+import { getEntry, render } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { alternatesFor, routes, type Lang } from '../i18n';
+
+interface Props {
+  lang: Lang;
+  page: 'about' | 'disclaimer';
+}
+
+const { lang, page } = Astro.props;
+const entry = (await getEntry('pages', `${lang}/${page}`))!;
+const { Content } = await render(entry);
+---
+
+<BaseLayout title={entry.data.title} description={entry.data.description} lang={lang} alternates={alternatesFor(routes[page])}>
+  <article class="wrap">
+    <header class="page-header">
+      <h1>{entry.data.title}</h1>
+    </header>
+    <div class="prose">
+      <Content />
+    </div>
+  </article>
+</BaseLayout>

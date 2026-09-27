@@ -1,0 +1,64 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PostList from '../components/PostList.astro';
+import { ui, routes, topicNames, topicBlurbs, TOPICS, type Lang, type Topic, type Alternates } from '../i18n';
+import { getPosts } from '../lib/posts';
+
+interface Props {
+  lang: Lang;
+  /** When set, only this topic is shown. */
+  topic?: Topic;
+}
+
+const { lang, topic } = Astro.props;
+const t = ui[lang];
+const posts = await getPosts(lang);
+const shown = topic ? [topic] : TOPICS;
+const title = topic ? topicNames[lang][topic] : t.topics;
+const description = topic ? topicBlurbs[lang][topic] : t.topicsIntro;
+const metaDescription = `${description} ${t.topicMeta}`;
+const alternates: Alternates = topic
+  ? { en: routes.topic('en', topic), fr: routes.topic('fr', topic) }
+  : { en: routes.topics('en'), fr: routes.topics('fr') };
+---
+
+<BaseLayout title={title} description={metaDescription} lang={lang} alternates={alternates}>
+  <div class="wrap">
+    <header class="page-header">
+      <h1>{title}</h1>
+      <p class="page-header__intro">{description}</p>
+    </header>
+
+    <nav class="filters" aria-label={t.filterLabel}>
+      <ul>
+        <li>
+          <a href={routes.topics(lang)} aria-current={topic ? undefined : 'page'}>{t.all}</a>
+        </li>
+        {
+          TOPICS.map((tp) => (
+            <li>
+              <a href={routes.topic(lang, tp)} aria-current={tp === topic ? 'page' : undefined}>
+                {topicNames[lang][tp]}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    {
+      topic ? (
+        <PostList lang={lang} posts={posts.filter((p) => p.data.topic === topic)} showTopic={false} headingLevel={2} />
+      ) : (
+        shown.map((tp) => (
+          <section class="topic-section" aria-labelledby={`section-${tp}`}>
+            <h2 id={`section-${tp}`} class="section-title">
+              <a href={routes.topic(lang, tp)}>{topicNames[lang][tp]}</a>
+            </h2>
+            <PostList lang={lang} posts={posts.filter((p) => p.data.topic === tp)} showTopic={false} />
+          </section>
+        ))
+      )
+    }
+  </div>
+</BaseLayout>

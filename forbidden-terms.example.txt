@@ -1,0 +1,8 @@
+# Copy this file to forbidden-terms.txt and replace the examples with the real
+# terms. forbidden-terms.txt is in .gitignore and must never be committed.
+# One term per line. Matching ignores case. Lines starting with # are ignored.
+Employer Name
+Your City
+Your Neighborhood
+Your Street
+Your Last Name
